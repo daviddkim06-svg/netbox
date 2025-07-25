@@ -1,22 +1,32 @@
 import pynetbox
 
-# NetBox API connection
+# NetBox API setup
 NETBOX_URL = "http://your-netbox-url"
-NETBOX_TOKEN = "your-api-token"
+NETBOX_TOKEN = "your-netbox-token"
 nb = pynetbox.api(NETBOX_URL, token=NETBOX_TOKEN)
+
+# Function to delete existing cable
+def delete_existing_cable(interface):
+    if interface and interface.connected_endpoint and interface.cable:
+        try:
+            cable_id = interface.cable.id
+            nb.dcim.cables.delete([cable_id])
+            print(f"[INFO] Deleted existing cable on {interface.device.name}.{interface.name} (cable ID {cable_id})")
+        except Exception as e:
+            print(f"[ERROR] Failed to delete cable on {interface.name}: {e}")
 
 # Get user input
 rack_id = input("Enter rack ID (e.g., a01): ").strip()
-nic1_name = input("Enter NIC1 name (server → switch A, e.g., enp216s0f0): ").strip()
+nic1_name = input("Enter NIC1 name (e.g., enp216s0f0): ").strip()
 
 # Auto-generate NIC2
 if nic1_name.endswith("0"):
     nic2_name = nic1_name[:-1] + "1"
 else:
-    print("[ERROR] NIC1 must end with '0' to derive NIC2")
+    print("[ERROR] NIC1 must end with '0' to auto-derive NIC2")
     exit(1)
 
-# Construct device names
+# Build device names
 server_prefix = rack_id
 switch_suffix = rack_id[1:]
 switch_a_name = f"rsa{switch_suffix}a.company.com"
@@ -30,7 +40,7 @@ if not switch_a or not switch_b:
     print(f"[ERROR] Switch not found: {switch_a_name}, {switch_b_name}")
     exit(1)
 
-# Loop through 40 servers
+# Loop through servers
 for i in range(1, 41):
     server_name = f"{server_prefix}p{i}.company.com"
     port_name = f"Et{i}"
@@ -40,20 +50,17 @@ for i in range(1, 41):
         print(f"[WARN] Server not found: {server_name}")
         continue
 
-    # Get server interfaces
     nic1 = nb.dcim.interfaces.get(device_id=server.id, name=nic1_name)
     nic2 = nb.dcim.interfaces.get(device_id=server.id, name=nic2_name)
-
-    # Get switch interfaces
     intf_a = nb.dcim.interfaces.get(device_id=switch_a.id, name=port_name)
     intf_b = nb.dcim.interfaces.get(device_id=switch_b.id, name=port_name)
 
-    ### A-SIDE CONNECTION (server.nic1 → switch_a.intf_a)
+    # A-side: Server NIC1 → Switch A
     if not nic1 or not intf_a:
-        print(f"[SKIP] A-side interface missing: {server_name}.{nic1_name} or {switch_a_name}.{port_name}")
-    elif nic1.connected_endpoint or intf_a.connected_endpoint:
-        print(f"[SKIP] A-side already connected: {server_name}.{nic1_name} or {switch_a_name}.{port_name}")
+        print(f"[SKIP] Missing A-side interface: {server_name}.{nic1_name} or {switch_a_name}.{port_name}")
     else:
+        delete_existing_cable(nic1)
+        delete_existing_cable(intf_a)
         try:
             cable = nb.dcim.cables.create({
                 "termination_a_type": "dcim.interface",
@@ -63,25 +70,21 @@ for i in range(1, 41):
                 "status": "connected"
             })
             if cable and hasattr(cable, 'id'):
-                print(f"[OK] Connected: {server_name}.{nic1.name} → {switch_a_name}.{port_name}")
+                print(f"[OK] {server_name}.{nic1.name} → {switch_a_name}.{port_name} (Cable ID {cable.id})")
             else:
-                print(f"[ERROR] No cable returned for: {server_name}.{nic1.name} → {switch_a_name}.{port_name}")
+                print(f"[ERROR] A-side: No cable returned for {server_name}.{nic1.name}")
         except Exception as e:
             if hasattr(e, 'response'):
-                try:
-                    print(f"[ERROR] A-side failure ({server_name}.{nic1.name} → {switch_a_name}.{port_name}):")
-                    print(f"        {e.response.json()}")
-                except:
-                    print(f"[ERROR] A-side failure (no JSON): {e}")
+                print(f"[ERROR] A-side ({server_name}.{nic1.name}): {e.response.json()}")
             else:
-                print(f"[ERROR] Unexpected A-side error: {e}")
+                print(f"[ERROR] A-side unexpected: {e}")
 
-    ### B-SIDE CONNECTION (server.nic2 → switch_b.intf_b)
+    # B-side: Server NIC2 → Switch B
     if not nic2 or not intf_b:
-        print(f"[SKIP] B-side interface missing: {server_name}.{nic2_name} or {switch_b_name}.{port_name}")
-    elif nic2.connected_endpoint or intf_b.connected_endpoint:
-        print(f"[SKIP] B-side already connected: {server_name}.{nic2.name} or {switch_b_name}.{port_name}")
+        print(f"[SKIP] Missing B-side interface: {server_name}.{nic2_name} or {switch_b_name}.{port_name}")
     else:
+        delete_existing_cable(nic2)
+        delete_existing_cable(intf_b)
         try:
             cable = nb.dcim.cables.create({
                 "termination_a_type": "dcim.interface",
@@ -91,48 +94,11 @@ for i in range(1, 41):
                 "status": "connected"
             })
             if cable and hasattr(cable, 'id'):
-                print(f"[OK] Connected: {server_name}.{nic2.name} → {switch_b_name}.{port_name}")
+                print(f"[OK] {server_name}.{nic2.name} → {switch_b_name}.{port_name} (Cable ID {cable.id})")
             else:
-                print(f"[ERROR] No cable returned for: {server_name}.{nic2.name} → {switch_b_name}.{port_name}")
+                print(f"[ERROR] B-side: No cable returned for {server_name}.{nic2.name}")
         except Exception as e:
             if hasattr(e, 'response'):
-                try:
-                    print(f"[ERROR] B-side failure ({server_name}.{nic2.name} → {switch_b_name}.{port_name}):")
-                    print(f"        {e.response.json()}")
-                except:
-                    print(f"[ERROR] B-side failure (no JSON): {e}")
+                print(f"[ERROR] B-side ({server_name}.{nic2.name}): {e.response.json()}")
             else:
-                print(f"[ERROR] Unexpected B-side error: {e}")
-
-
-# Debug test for a01p1
-rack_id = "a01"
-nic1_name = "enp216s0f0"
-nic2_name = "enp216s0f1"
-
-server_name = f"{rack_id}p1.company.com"
-switch_a_name = f"rsa01a.company.com"
-switch_b_name = f"rsa01b.company.com"
-
-server = nb.dcim.devices.get(name=server_name)
-switch_a = nb.dcim.devices.get(name=switch_a_name)
-switch_b = nb.dcim.devices.get(name=switch_b_name)
-
-nic1 = nb.dcim.interfaces.get(device_id=server.id, name=nic1_name)
-nic2 = nb.dcim.interfaces.get(device_id=server.id, name=nic2_name)
-intf_a = nb.dcim.interfaces.get(device_id=switch_a.id, name="Et1")
-intf_b = nb.dcim.interfaces.get(device_id=switch_b.id, name="Et1")
-
-print("--- SERVER ---")
-print("NIC1:", nic1.name if nic1 else "NOT FOUND")
-print("NIC2:", nic2.name if nic2 else "NOT FOUND")
-
-print("--- SWITCH ---")
-print("SW-A Et1:", intf_a.name if intf_a else "NOT FOUND")
-print("SW-B Et1:", intf_b.name if intf_b else "NOT FOUND")
-
-print("--- CONNECTION STATE ---")
-print("NIC1 connected to:", nic1.connected_endpoint if nic1 else "X")
-print("NIC2 connected to:", nic2.connected_endpoint if nic2 else "X")
-print("SW-A Et1 connected to:", intf_a.connected_endpoint if intf_a else "X")
-print("SW-B Et1 connected to:", intf_b.connected_endpoint if intf_b else "X")
+                print(f"[ERROR] B-side unexpected: {e}")
