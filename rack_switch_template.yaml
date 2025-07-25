@@ -1,0 +1,168 @@
+switches:
+- name: rsa01a.company.com
+  device_type: DCS-7160-48YC6-R
+  device_role: switch
+  position: 5
+  interfaces:
+  - name: Et1
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et2
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et3
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et4
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et5
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et6
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et7
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et8
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et9
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et10
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et11
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et12
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et13
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et14
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et15
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et16
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et17
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et18
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et19
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et20
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et21
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et22
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et23
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et24
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et25
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et26
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et27
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et28
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et29
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et30
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et31
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et32
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et33
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et34
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et35
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et36
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et37
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et38
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et39
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et40
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et41
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et42
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et43
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et44
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et45
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et46
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et47
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et48
+    type: 10gbase-x-sfpp
+    mtu: 9000
+  - name: Et49/
+    type: 100gbase-x-qsfp28
+    mtu: 9000
+  - name: Et50/
+    type: 100gbase-x-qsfp28
+    mtu: 9000
+  - name: Et51/
+    type: 100gbase-x-qsfp28
+    mtu: 9000
+  - name: Et52/
+    type: 100gbase-x-qsfp28
+    mtu: 9000
+  - name: Et53/
+    type: 100gbase-x-qsfp28
+    mtu: 9000
+  - name: Et54/
+    type: 100gbase-x-qsfp28
+    mtu: 9000
