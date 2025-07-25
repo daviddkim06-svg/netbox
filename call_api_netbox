@@ -1,0 +1,10 @@
+curl -X POST http://<your-netbox>/api/dcim/cables/ \
+  -H "Authorization: Token <your-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "termination_a_type": "dcim.interface",
+    "termination_a_id": <nic_id>,
+    "termination_b_type": "dcim.interface",
+    "termination_b_id": <port_id>,
+    "status": "connected"
+  }'
