@@ -8,3 +8,22 @@ curl -X POST http://<your-netbox>/api/dcim/cables/ \
     "termination_b_id": <port_id>,
     "status": "connected"
   }'
+
+import requests
+
+url = "http://localhost:8000/api/dcim/cables/"
+headers = {
+    "Authorization": "Token your-token",
+    "Content-Type": "application/json"
+}
+data = {
+    "termination_a_type": "dcim.interface",
+    "termination_a_id": 2,
+    "termination_b_type": "dcim.interface",
+    "termination_b_id": 4,
+    "status": "connected"
+}
+
+response = requests.post(url, headers=headers, json=data)
+print(response.status_code)
+print(response.json())
