@@ -1,0 +1,46 @@
+import pynetbox
+import yaml
+
+# === 설정 ===
+NETBOX_URL = "http://localhost:8001"  # 또는 네 환경에 맞게 수정
+NETBOX_TOKEN = "your-netbox-token"
+RACK_NAME = "a01"  # 원하는 랙 이름 입력
+
+# === NetBox 연결 ===
+nb = pynetbox.api(NETBOX_URL, token=NETBOX_TOKEN)
+
+# === 대상 랙 조회 ===
+racks = nb.dcim.racks.filter(name=RACK_NAME)
+if not racks:
+    raise Exception(f"Rack '{RACK_NAME}' not found.")
+rack_id = racks[0].id
+
+# === 랙 내 모든 디바이스 조회 ===
+devices = nb.dcim.devices.filter(rack_id=rack_id)
+if not devices:
+    print(f"[INFO] No devices found in rack '{RACK_NAME}'.")
+
+connections = []
+
+for device in devices:
+    interfaces = nb.dcim.interfaces.filter(device_id=device.id)
+    for iface in interfaces:
+        # 피지컬 인터페이스만 필터
+        if iface.type and iface.type.value in [
+            "1000base-t", "100base-tx", "10gbase-t", "10gbase-x-sfpp", "25gbase-x-sfp28", 
+            "40gbase-x-qsfpp", "100gbase-x-qsfp28", "other"
+        ]:
+            connections.append({
+                "device": device.name,
+                "interface": iface.name,
+                "interface_id": iface.id
+            })
+
+# === YAML 포맷으로 출력 ===
+yaml_data = {"interfaces": connections}
+yaml_string = yaml.dump(yaml_data, sort_keys=False)
+
+with open(f"{RACK_NAME}_interfaces.yaml", "w") as f:
+    f.write(yaml_string)
+
+print(f"[OK] Export complete: {RACK_NAME}_interfaces.yaml")
