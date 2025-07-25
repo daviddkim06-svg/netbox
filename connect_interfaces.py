@@ -103,3 +103,36 @@ for i in range(1, 41):
                     print(f"[ERROR] B-side failure (no JSON): {e}")
             else:
                 print(f"[ERROR] Unexpected B-side error: {e}")
+
+
+# Debug test for a01p1
+rack_id = "a01"
+nic1_name = "enp216s0f0"
+nic2_name = "enp216s0f1"
+
+server_name = f"{rack_id}p1.company.com"
+switch_a_name = f"rsa01a.company.com"
+switch_b_name = f"rsa01b.company.com"
+
+server = nb.dcim.devices.get(name=server_name)
+switch_a = nb.dcim.devices.get(name=switch_a_name)
+switch_b = nb.dcim.devices.get(name=switch_b_name)
+
+nic1 = nb.dcim.interfaces.get(device_id=server.id, name=nic1_name)
+nic2 = nb.dcim.interfaces.get(device_id=server.id, name=nic2_name)
+intf_a = nb.dcim.interfaces.get(device_id=switch_a.id, name="Et1")
+intf_b = nb.dcim.interfaces.get(device_id=switch_b.id, name="Et1")
+
+print("--- SERVER ---")
+print("NIC1:", nic1.name if nic1 else "NOT FOUND")
+print("NIC2:", nic2.name if nic2 else "NOT FOUND")
+
+print("--- SWITCH ---")
+print("SW-A Et1:", intf_a.name if intf_a else "NOT FOUND")
+print("SW-B Et1:", intf_b.name if intf_b else "NOT FOUND")
+
+print("--- CONNECTION STATE ---")
+print("NIC1 connected to:", nic1.connected_endpoint if nic1 else "X")
+print("NIC2 connected to:", nic2.connected_endpoint if nic2 else "X")
+print("SW-A Et1 connected to:", intf_a.connected_endpoint if intf_a else "X")
+print("SW-B Et1 connected to:", intf_b.connected_endpoint if intf_b else "X")
