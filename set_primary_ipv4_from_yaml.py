@@ -1,47 +1,57 @@
 import yaml
 import pynetbox
 
-# --- NetBox connection ---
-netbox_url = input("NetBox URL (e.g., http://netbox.local): ").strip()
+# Connect to NetBox
+netbox_url = input("NetBox URL: ").strip()
 netbox_token = input("NetBox API Token: ").strip()
-yaml_file = input("YAML file path (e.g., a01_netbox_devices.yaml): ").strip()
+yaml_file = input("YAML file with servers: ").strip()
 
 nb = pynetbox.api(netbox_url, token=netbox_token)
 
-# --- Load server list from YAML ---
-with open(yaml_file, 'r') as f:
+# Load servers from YAML
+with open(yaml_file, "r") as f:
     data = yaml.safe_load(f)
 
 servers = data.get("servers", [])
 if not servers:
-    print("❌ No 'servers' list found in YAML.")
+    print("❌ No 'servers' found in YAML.")
     exit(1)
 
-# --- Process each server ---
+# Process each server
 for server in servers:
-    device_name = server.get("name")
-    if not device_name:
+    name = server.get("name")
+    if not name:
         continue
 
-    device = nb.dcim.devices.get(name=device_name)
+    device = nb.dcim.devices.get(name=name)
     if not device:
-        print(f"❌ Device not found in NetBox: {device_name}")
+        print(f"❌ Device not found: {name}")
         continue
 
     bond_iface = nb.dcim.interfaces.get(device_id=device.id, name="bond0")
     if not bond_iface:
-        print(f"❌ 'bond0' interface not found on {device_name}")
+        print(f"❌ bond0 not found on {name}")
         continue
 
-    ip_list = nb.ipam.ip_addresses.filter(device=device.id, interface_id=bond_iface.id)
-    ip = next((ip for ip in ip_list if ip.family.label == "IPv4"), None)
+    # Fetch all IPs for the device
+    ip_list = nb.ipam.ip_addresses.filter(device_id=device.id)
+    ip_found = None
 
-    if not ip:
-        print(f"❌ No IPv4 address found on bond0 of {device_name}")
+    for ip in ip_list:
+        if (
+            ip.assigned_object_type == "dcim.interface"
+            and ip.assigned_object_id == bond_iface.id
+            and ip.family.label == "IPv4"
+        ):
+            ip_found = ip
+            break
+
+    if not ip_found:
+        print(f"❌ No IPv4 assigned to bond0 on {name}")
         continue
 
-    updated = device.update({"primary_ip4": ip.id})
+    updated = device.update({"primary_ip4": ip_found.id})
     if updated:
-        print(f"✅ {device_name}: Primary IPv4 set to {ip.address}")
+        print(f"✅ {name}: primary_ip4 set to {ip_found.address}")
     else:
-        print(f"❌ Failed to set primary IP for {device_name}")
+        print(f"❌ Failed to update primary IP for {name}")
