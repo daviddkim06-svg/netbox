@@ -1,23 +1,23 @@
 import yaml
 import pynetbox
 
-# Connect to NetBox
+# --- Connect to NetBox ---
 netbox_url = input("NetBox URL: ").strip()
 netbox_token = input("NetBox API Token: ").strip()
 yaml_file = input("YAML file with servers: ").strip()
 
 nb = pynetbox.api(netbox_url, token=netbox_token)
 
-# Load YAML
+# --- Load servers ---
 with open(yaml_file, "r") as f:
     data = yaml.safe_load(f)
 
 servers = data.get("servers", [])
 if not servers:
-    print("No 'servers' list found.")
+    print("❌ No 'servers' list found in YAML.")
     exit(1)
 
-# Process each server
+# --- Process each server ---
 for server in servers:
     name = server.get("name")
     if not name:
@@ -25,12 +25,12 @@ for server in servers:
 
     device = nb.dcim.devices.get(name=name)
     if not device:
-        print(f"Device not found: {name}")
+        print(f"❌ Device not found: {name}")
         continue
 
     iface = nb.dcim.interfaces.get(device_id=device.id, name="bond0")
     if not iface:
-        print(f"bond0 not found on {name}")
+        print(f"❌ bond0 interface not found on {name}")
         continue
 
     ip_list = nb.ipam.ip_addresses.filter(device_id=device.id)
@@ -46,15 +46,19 @@ for server in servers:
             break
 
     if not ip_obj:
-        print(f"No IPv4 found on bond0 of {name}")
+        print(f"❌ No IPv4 found on bond0 of {name}")
         continue
 
+    # --- Ask user for description ---
+    desc = input(f"[{name}] Enter description for IP {ip_obj.address}: ").strip()
+
+    # --- Update IP with dns_name + user-provided description ---
     updated = ip_obj.update({
         "dns_name": name,
-        "description": f"bond0 of {name}"
+        "description": desc
     })
 
     if updated:
-        print(f"Updated IP {ip_obj.address} with DNS name and description")
+        print(f"✅ {ip_obj.address} → dns_name: {name}, description: {desc}")
     else:
-        print(f"Failed to update IP {ip_obj.address}")
+        print(f"❌ Failed to update {ip_obj.address}")
